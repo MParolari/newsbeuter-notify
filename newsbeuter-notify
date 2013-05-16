@@ -23,11 +23,12 @@ use warnings;
 use DBI qw(:sql_types);
 
 # defaults
+my $global_limit = 5; # limit the number of new articles to be reported
 my $new_articles = 0;
 my $unread_articles = 0;
 my $unread_feeds = 0;
 my $notify_format = "%d new articles (%d unread, %d unread feeds)";
-my $notify_string;
+my $posts;
 my $cache_file = $ENV{HOME} . "/.newsbeuter/cache.db";
 
 if (defined ($ARGV[0])) {
@@ -39,25 +40,26 @@ if ($new_articles == 0) {
         # All values are zero, notification pointless
         exit(0);
     } else {
-        $notify_string = sprintf($notify_format, $new_articles, $unread_articles,
+        $posts = sprintf($notify_format, $new_articles, $unread_articles,
         $unread_feeds);
     }
 } elsif ($new_articles > 0) {
-    $notify_string = newsbeuter_cache_fetch($new_articles);
+    $posts = newsbeuter_cache_fetch($new_articles);
 }
 
-print $notify_string . "\n";
-
-exec("notify-send", "newsbeuter", $notify_string);
+foreach (@$posts)
+{
+    system("notify-send", "newsbeuter", $_);
+}
 exit(0);
 
 sub newsbeuter_cache_fetch {
     my $limit = shift;
     my $more = 0;
 
-    if ($limit > 5) { 
-        $more = $limit - 5;
-        $limit = 5;
+    if ($limit > $global_limit) {
+        $more = $limit - $global_limit;
+        $limit = $global_limit;
     }
 
     my $dbh = DBI->connect("dbi:SQLite:dbname=$cache_file","","");
@@ -85,8 +87,7 @@ sub newsbeuter_cache_fetch {
     $sth->finish();
     $dbh->disconnect();
 
-    my $notify_string = join("\n", @posts);
-    return $notify_string;
+    return \@posts;
 }
 
 =head1 NAME

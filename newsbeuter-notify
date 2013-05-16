@@ -23,7 +23,7 @@ use warnings;
 use DBI qw(:sql_types);
 
 # defaults
-my $global_limit = 5; # limit the number of new articles to be reported
+my $global_limit = 5; # limit the number of new articles to be reported. Set to 0 to notify all new articles.
 my $new_articles = 0;
 my $unread_articles = 0;
 my $unread_feeds = 0;
@@ -57,9 +57,12 @@ sub newsbeuter_cache_fetch {
     my $limit = shift;
     my $more = 0;
 
-    if ($limit > $global_limit) {
-        $more = $limit - $global_limit;
-        $limit = $global_limit;
+    if($global_limit)
+    {
+        if ($limit > $global_limit) {
+            $more = $limit - $global_limit;
+            $limit = $global_limit;
+        }
     }
 
     my $dbh = DBI->connect("dbi:SQLite:dbname=$cache_file","","");

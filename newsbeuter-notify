@@ -31,6 +31,7 @@ my $unread_feeds = 0;
 my $notify_format = "%d new articles (%d unread, %d unread feeds)";
 my $posts;
 my $cache_file = $ENV{HOME} . "/.newsbeuter/cache.db";
+my $icon_path = $ENV{HOME} . "/.newsbeuter/icon.png";
 
 if (defined ($ARGV[0])) {
     ($new_articles, $unread_articles, $unread_feeds) = split(/\s+/, $ARGV[0]);
@@ -49,10 +50,10 @@ if ($new_articles == 0) {
 }
 
 if ($one_notification) {
-  system("notify-send", "newsbeuter", join("\n", @$posts));
+  system("notify-send", "-i" => $icon_path, "newsbeuter", join("\n", @$posts));
 } else {
   foreach (@$posts) {
-      system("notify-send", "newsbeuter", $_);
+      system("notify-send", "-i" => $icon_path, "newsbeuter", $_);
   }
 }
 exit(0);

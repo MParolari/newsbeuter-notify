@@ -24,6 +24,7 @@ use DBI qw(:sql_types);
 
 # defaults
 my $global_limit = 5; # limit the number of new articles to be reported. Set to 0 to notify all new articles.
+my $one_notification = 1; # if true, show only one notification for all new articles
 my $new_articles = 0;
 my $unread_articles = 0;
 my $unread_feeds = 0;
@@ -47,9 +48,12 @@ if ($new_articles == 0) {
     $posts = newsbeuter_cache_fetch($new_articles);
 }
 
-foreach (@$posts)
-{
-    system("notify-send", "newsbeuter", $_);
+if ($one_notification) {
+  system("notify-send", "newsbeuter", join("\n", @$posts));
+} else {
+  foreach (@$posts) {
+      system("notify-send", "newsbeuter", $_);
+  }
 }
 exit(0);
 

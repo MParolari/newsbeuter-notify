@@ -40,8 +40,8 @@ if ($new_articles == 0) {
         # All values are zero, notification pointless
         exit(0);
     } else {
-        $posts = sprintf($notify_format, $new_articles, $unread_articles,
-        $unread_feeds);
+        $posts = [sprintf($notify_format, $new_articles, $unread_articles,
+                          $unread_feeds)];
     }
 } elsif ($new_articles > 0) {
     $posts = newsbeuter_cache_fetch($new_articles);

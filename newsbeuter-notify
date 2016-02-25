@@ -24,6 +24,7 @@ use DBI qw(:sql_types);
 
 # defaults
 my $global_limit = 5; # limit the number of new articles to be reported. Set to 0 to notify all new articles.
+my $post_max_length = 100; # limit the length of each title to be reported. Set to 0 for no limit.
 my $expire_time = 5000; # millisecond
 my $one_notification = 1; # if true, show only one notification for all new articles
 my $new_articles = 0;
@@ -88,7 +89,12 @@ sub newsbeuter_cache_fetch {
     # id, author, url is unused, but I keep it here for reference.
     # Extending or changing the output format is easy.
     while (my ($id, $title, $author, $url, $ftitle) = $sth->fetchrow_array) {
-        push(@posts, sprintf("<b>%s</b>: %s", $ftitle, $title) );
+        #TODO check if html tag is closed #TODO use 'ftitle' defined in urls file?
+        my $post = sprintf("<b>%s</b>: %s", $ftitle, $title);
+        if ( $post_max_length > 4 && length($post) > $post_max_length ) {
+            $post = substr($post, 0, $post_max_length-4) . '....';
+        }
+        push(@posts, $post);
     }
 
     if ($more) {

@@ -31,6 +31,7 @@ my $new_articles = 0;
 my $unread_articles = 0;
 my $unread_feeds = 0;
 my $notify_format = "%d new articles (%d unread, %d unread feeds)";
+my $post_format = "<b>%ftitle</b>: %title";
 my $posts;
 my $cache_file = $ENV{HOME} . "/.newsbeuter/cache.db";
 my $icon_path = $ENV{HOME} . "/.newsbeuter/icon.png";
@@ -90,7 +91,7 @@ sub newsbeuter_cache_fetch {
     # Extending or changing the output format is easy.
     while (my $hashref = $sth->fetchrow_hashref) {
         #TODO use 'ftitle' defined in urls file?
-        my $post = "<b>%ftitle</b>: %title";
+        my $post = $post_format;
         my $post_length = 2; #TODO get automatically from output format
         # we match format specifiers
         while ( $post =~ m/^[^%]*\%(\w*)/ ) {

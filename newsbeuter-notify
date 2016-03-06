@@ -92,7 +92,7 @@ sub newsbeuter_cache_fetch {
     while (my $hashref = $sth->fetchrow_hashref) {
         #TODO use 'ftitle' defined in urls file?
         my $post = $post_format;
-        my $post_length = 2; #TODO get automatically from output format
+        my $post_length = length($post =~ s/(?:<\/?[^<>]*>)|(?:\%\w*)//gri);
         # we match format specifiers
         while ( $post =~ m/^[^%]*\%(\w*)/ ) {
           my $value = %$hashref{$1} || '';  # get value (if undef, '' is set)

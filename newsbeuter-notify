@@ -88,13 +88,32 @@ sub newsbeuter_cache_fetch {
     my @posts;
     # id, author, url is unused, but I keep it here for reference.
     # Extending or changing the output format is easy.
-    while (my ($id, $title, $author, $url, $ftitle) = $sth->fetchrow_array) {
-        #TODO check if html tag is closed #TODO use 'ftitle' defined in urls file?
-        my $post = sprintf("<b>%s</b>: %s", escape($ftitle), escape($title));
-        if ( $post_max_length > 3 && length($post) > $post_max_length ) {
-            $post = substr($post, 0, $post_max_length-3);
-            $post =~ s/(\s)+(\S)*$//;
-            $post = $post . "...";
+    while (my $hashref = $sth->fetchrow_hashref) {
+        #TODO use 'ftitle' defined in urls file?
+        my $post = "<b>%feed_url</b>: %title";
+        my $post_length = 2; #TODO get automatically from output format
+        # we match format specifiers
+        while ( $post =~ m/^[^%]*\%(\w*)/ ) {
+          my $value = %$hashref{$1} || '';  # get value (if undef, '' is set)
+          # we erase the value if there isn't more space
+          $value = '' if ($post_length < 0) && ($post_max_length > 0);
+          # if we exceed the length limit (if exists)
+          if ( $post_length >= 0 && $post_max_length > 0 &&
+               $post_length + length($value) > $post_max_length ) {
+            # if possible, the value will be truncated
+            if ( $post_max_length-$post_length-3 > 0 ) {
+              $value = substr($value, 0, $post_max_length-$post_length-3);
+              $value =~ s/(\s)+(\S)*$//;
+              $value = $value . "...";
+            } else {
+              $value = ''; # if we can't truncate the value, we erase it.
+            }
+            # we set a negative post_length, which means there isn't more space
+            $post_length = -length($value) -1;
+          }
+          $post_length += length($value); # update length
+          $value = escape($value);        # escape special characters
+          $post =~ s/%$1/$value/;         # substitution ($1 is the specifier)
         }
         push(@posts, $post);
     }

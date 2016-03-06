@@ -76,7 +76,7 @@ sub newsbeuter_cache_fetch {
 
     my $dbh = DBI->connect("dbi:SQLite:dbname=$cache_file","","");
     my $sth = $dbh->prepare("select i.id, i.title, i.author, i.url, \
-                            f.title as feed_url \
+                            f.title as ftitle \
                             from rss_item as i \
                             join rss_feed as f \
                             on (i.feedurl = f.rssurl)
@@ -90,7 +90,7 @@ sub newsbeuter_cache_fetch {
     # Extending or changing the output format is easy.
     while (my $hashref = $sth->fetchrow_hashref) {
         #TODO use 'ftitle' defined in urls file?
-        my $post = "<b>%feed_url</b>: %title";
+        my $post = "<b>%ftitle</b>: %title";
         my $post_length = 2; #TODO get automatically from output format
         # we match format specifiers
         while ( $post =~ m/^[^%]*\%(\w*)/ ) {

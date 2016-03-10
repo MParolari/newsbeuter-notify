@@ -34,6 +34,7 @@ my $notify_format = "%d new articles (%d unread, %d unread feeds)";
 my $post_format = "<b>%ftitle</b>: %title";
 my $posts;
 my $cache_file = $ENV{HOME} . "/.newsbeuter/cache.db";
+my $urls_file = $ENV{HOME} . "/.newsbeuter/urls";
 my $icon_path = $ENV{HOME} . "/.newsbeuter/icon.png";
 
 if (defined ($ARGV[0])) {
@@ -77,7 +78,7 @@ sub newsbeuter_cache_fetch {
 
     my $dbh = DBI->connect("dbi:SQLite:dbname=$cache_file","","");
     my $sth = $dbh->prepare("select i.id, i.title, i.author, i.url, \
-                            f.title as ftitle \
+                            f.title as ftitle, f.rssurl as furl \
                             from rss_item as i \
                             join rss_feed as f \
                             on (i.feedurl = f.rssurl)
@@ -90,12 +91,15 @@ sub newsbeuter_cache_fetch {
     # id, author, url is unused, but I keep it here for reference.
     # Extending or changing the output format is easy.
     while (my $hashref = $sth->fetchrow_hashref) {
-        #TODO use 'ftitle' defined in urls file?
         my $post = $post_format;
         my $post_length = length($post =~ s/(?:<\/?[^<>]*>)|(?:\%\w*)//gri);
         # we match format specifiers
         while ( $post =~ m/^[^%]*\%(\w*)/ ) {
           my $value = %$hashref{$1} || '';  # get value (if undef, '' is set)
+          if ( $1 eq 'ftitle' ) { # get 'ftitle' defined in urls file
+            my $furl = %$hashref{'furl'};
+            $value = ftitle_fetch($furl) || $value ;
+          }
           # we erase the value if there isn't more space
           $value = '' if ($post_length < 0) && ($post_max_length > 0);
           # if we exceed the length limit (if exists)
@@ -135,6 +139,18 @@ sub escape {
   $str =~ s/</&lt;/g;
   $str =~ s/>/&gt;/g;
   return $str;
+}
+
+sub ftitle_fetch {
+  my $furl = shift || return '';
+  open(my $file, '<', $urls_file) #TODO? :encoding(UTF-8)
+    or (print "Could not open file '$urls_file'\n" and return '');
+  while ( my $line = <$file> ) {
+    if ( $line =~ m/$furl.*"~([\w\s]+)"/ ) {
+      return $1;
+    }
+  }
+  return '';
 }
 
 =head1 NAME

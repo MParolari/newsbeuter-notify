@@ -28,18 +28,23 @@ my $post_max_length = 100; # limit the length of each title to be reported. Set 
 my $expire_time = 5000; # millisecond
 my $time_foreach_notification = 0; # if true, expire_time *= number_of_notifications
 my $one_notification = 1; # if true, show only one notification for all new articles
-my $new_articles = 0;
-my $unread_articles = 0;
-my $unread_feeds = 0;
 my $notify_format = "%d new articles (%d unread, %d unread feeds)";
 my $post_format = "<b>%ftitle</b>: %title";
-my $posts;
 my $cache_file = $ENV{HOME} . "/.newsbeuter/cache.db";
 my $urls_file = $ENV{HOME} . "/.newsbeuter/urls";
 my $icon_path = $ENV{HOME} . "/.newsbeuter/icon.png";
 
+# variables
+my $new_articles = 0;
+my $unread_articles = 0;
+my $unread_feeds = 0;
+my $posts;
+
 if (defined ($ARGV[0])) {
     ($new_articles, $unread_articles, $unread_feeds) = split(/\s+/, $ARGV[0]);
+} else {
+  warn "argv[0] not defined";
+  exit(1);
 }
 
 if ($new_articles == 0) {
@@ -146,7 +151,7 @@ sub escape {
 sub ftitle_fetch {
   my $furl = shift || return '';
   open(my $file, '<', $urls_file) #TODO? :encoding(UTF-8)
-    or (print "Could not open file '$urls_file'\n" and return '');
+    or (warn "Could not open file '$urls_file'" and return '');
   while ( my $line = <$file> ) {
     if ( $line =~ m/$furl.*"~([\w\s]+)"/ ) {
       return $1;

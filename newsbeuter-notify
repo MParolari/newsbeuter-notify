@@ -26,6 +26,7 @@ use DBI qw(:sql_types);
 my $global_limit = 5; # limit the number of new articles to be reported. Set to 0 to notify all new articles.
 my $post_max_length = 100; # limit the length of each title to be reported. Set to 0 for no limit.
 my $expire_time = 5000; # millisecond
+my $time_foreach_notification = 0; # if true, expire_time *= number_of_notifications
 my $one_notification = 1; # if true, show only one notification for all new articles
 my $new_articles = 0;
 my $unread_articles = 0;
@@ -54,6 +55,7 @@ if ($new_articles == 0) {
 }
 
 if ($one_notification) {
+  $expire_time *= scalar(@$posts) if ($time_foreach_notification);
   system("notify-send", "-i" => $icon_path, "-t" => $expire_time,
     "newsbeuter", join("\n", @$posts));
 } else {
